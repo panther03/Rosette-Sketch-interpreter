@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Semgus.Solver.Sketch</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="/home/panther/SemGuS/Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj" />
+  </ItemGroup>
+
+</Project>

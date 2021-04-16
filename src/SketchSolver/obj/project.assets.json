@@ -1,0 +1,115 @@
+{
+  "version": 3,
+  "targets": {
+    "net5.0": {
+      "Antlr4.Runtime.Standard/4.9.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Antlr4.Runtime.Standard.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Antlr4.Runtime.Standard.dll": {}
+        }
+      },
+      "Semgus.Parser/1.0.0": {
+        "type": "project",
+        "framework": ".NETStandard,Version=v2.0",
+        "dependencies": {
+          "Antlr4.Runtime.Standard": "4.9.1"
+        },
+        "compile": {
+          "bin/placeholder/Semgus.Parser.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Semgus.Parser.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Antlr4.Runtime.Standard/4.9.1": {
+      "sha512": "2b6SrwXRa3lgJ7nQyG+EZFJHGDWRW0Bb8KfqdXaAVL3QoGOuXkFRLBxTIbRt1lNUop9k++SG2kid/pl1Q49UGw==",
+      "type": "package",
+      "path": "antlr4.runtime.standard/4.9.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "antlr4.runtime.standard.4.9.1.nupkg.sha512",
+        "antlr4.runtime.standard.nuspec",
+        "lib/netstandard2.0/Antlr4.Runtime.Standard.dll",
+        "lib/netstandard2.0/Antlr4.Runtime.Standard.xml",
+        "lib/netstandard2.1/Antlr4.Runtime.Standard.dll",
+        "lib/netstandard2.1/Antlr4.Runtime.Standard.xml"
+      ]
+    },
+    "Semgus.Parser/1.0.0": {
+      "type": "project",
+      "path": "../../../Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj",
+      "msbuildProject": "../../../Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net5.0": [
+      "Semgus.Parser >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/panther/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "/home/panther/SemGuS/Rosette-Sketch-interpreter/src/SketchSolver/SketchSolver.csproj",
+      "projectName": "SketchSolver",
+      "projectPath": "/home/panther/SemGuS/Rosette-Sketch-interpreter/src/SketchSolver/SketchSolver.csproj",
+      "packagesPath": "/home/panther/.nuget/packages/",
+      "outputPath": "/home/panther/SemGuS/Rosette-Sketch-interpreter/src/SketchSolver/obj/",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/home/panther/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net5.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "projectReferences": {
+            "/home/panther/SemGuS/Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj": {
+              "projectPath": "/home/panther/SemGuS/Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net5.0": {
+        "targetAlias": "net5.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.202/RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
