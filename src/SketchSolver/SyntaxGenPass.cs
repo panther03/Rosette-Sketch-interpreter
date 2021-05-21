@@ -4,13 +4,16 @@ using Semgus.Util;
 using Semgus.Syntax;
 
 namespace Semgus.Solver.Sketch {
-    class AdtBuilder{
-        public static  string BuildAdtRepresentation(ISyntaxNode node) {
-            var visitor = new AdtBuildVisitor();
-            return node.Accept(new AdtBuildVisitor()).ToString();
+    class SyntaxGenPass{
+        private readonly static string GENERATOR_SKELETON = "assert bnd >= 0; int t = ??;";
+        private static int rhs_id = 0;
+        private static string lhs_name;
+        public static  string BuildSyntaxGenFns(ISyntaxNode node) {
+            var visitor = new SyntaxGenPassVisitor();
+            return node.Accept(new SyntaxGenPassVisitor()).ToString();
         }
 
-        private class AdtBuildVisitor : IAstVisitor<CodeTextBuilder> {
+        private class SyntaxGenPassVisitor : IAstVisitor<CodeTextBuilder> {
             private static readonly CodeTextBuilder _builder = new CodeTextBuilder();
 
             private CodeTextBuilder DoVisit(ISyntaxNode node) => node.Accept(this);
@@ -48,10 +51,14 @@ namespace Semgus.Solver.Sketch {
             }
 
             public CodeTextBuilder Visit(AtomicRewriteExpression node) {
-                _builder.Write("Struct_");
-                DoVisit(node.Atom);
-                _builder.Write(" ");
-                using (_builder.InBraces()) {}
+                _builder.Write($"if (t=={rhs_id})");
+                using (_builder.InBraces()) {
+                    _builder.Write("return new Struct_");
+                    DoVisit(node.Atom);
+                    using (_builder.InParens()) {}
+                    _builder.Write(";");
+                }
+                rhs_id++;
                 return _builder;
             }
 
@@ -67,7 +74,7 @@ namespace Semgus.Solver.Sketch {
 
             public CodeTextBuilder Visit<TValue>(Literal<TValue> node) => _builder.Write(node.Value.ToString());
 
-            public CodeTextBuilder Visit(NonterminalTermDeclaration node) => _builder.Write($"{node.Nonterminal.Name} {node.Name};");
+            public CodeTextBuilder Visit(NonterminalTermDeclaration node) => _builder.Write($"{node.Name}={lhs_name}_gen(bnd-1), ");
 
             public CodeTextBuilder Visit(VariableEvaluation node) => _builder.Write(node.Variable.Name);
 
@@ -78,13 +85,8 @@ namespace Semgus.Solver.Sketch {
             public CodeTextBuilder Visit(VariableDeclaration node) => _builder.Write($"{node.Name}:{node.Type}");
 
             public CodeTextBuilder Visit(SynthFun node) {
-                _builder.Write("adt ASTNode ");
-                using (_builder.InBraces()) {
-                    using (_builder.InLineBreaks()) {
-                        VisitEach(node.Productions);
-                    }
-                }
                 _builder.LineBreak();
+                VisitEach(node.Productions);
                 return _builder;
             }
 
@@ -103,31 +105,34 @@ namespace Semgus.Solver.Sketch {
             }
 
             public CodeTextBuilder Visit(SemanticRelationQuery node) {
-                using (_builder.InParens()) {
-                    _builder.Write(node.Relation.Name);
-                    _builder.Write(" ");
-                    VisitEach(node.Terms, " ");
-                }
                 return _builder;
             }
 
             public CodeTextBuilder Visit(OpRewriteExpression node) {
-                _builder.Write("Struct_");
-                DoVisit(node.Op);
-                _builder.Write(" ");
+                _builder.Write($"if (t=={rhs_id})");
                 using (_builder.InBraces()) {
-                    VisitEach(node.Operands," ");
+                    _builder.Write("return new Struct_");
+                    DoVisit(node.Op);
+                    using (_builder.InParens()) {
+                        VisitEach(node.Operands," ");
+                    }
+                    _builder.Write(";");
                 }
+                rhs_id++;
                 return _builder;
             }
 
             public CodeTextBuilder Visit(Production node) {
+                lhs_name = node.Nonterminal.Name;
                 using (_builder.InLineBreaks()) {
                     _builder.LineBreak();
-                    _builder.Write("adt ");
-                    _builder.Write(node.Nonterminal.Name);
-                    _builder.Write(" ");
+                    _builder.Write("generator ");
+                    _builder.Write(lhs_name);
+                    _builder.Write($" {node.Nonterminal.Name}_gen(int bnd) ");
                     using (_builder.InBraces()) {
+                            _builder.LineBreak();
+                            _builder.Write(GENERATOR_SKELETON);
+                            rhs_id = 0;
                             VisitEach(node.ProductionRules);
                     }
                 }

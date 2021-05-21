@@ -8,11 +8,6 @@ using Semgus.Syntax;
 namespace Semgus.Solver.Sketch {
     class Program {
         static void Main(string[] args) {
-            Main2(args);
-        }
-
-        // AST parser demo
-        static void Main2(string[] args) {
             if (args.Length != 1) {
                 Console.Error.WriteLine("Expects one argument: a Semgus file to parse");
             }
@@ -27,11 +22,12 @@ namespace Semgus.Solver.Sketch {
             try {
                 (var ast, var env) = normalizer.Normalize(cst);
 
-                var printer = new AdtBuilder();
+                var printer = AdtBuilder.BuildAdtRepresentation(ast) + SyntaxGenPass.BuildSyntaxGenFns(ast);
+
 
                 // Print the AST
                 System.Console.WriteLine(env.PrettyPrint());
-                System.Console.WriteLine(printer.BuildAdtRepresentation(ast));
+                System.Console.WriteLine(printer);
             } catch (SemgusSyntaxException e) {
                 using (var file = new StreamReader(filename)) {
                     PrintExceptionAndItsLocationInFile(e, file);
