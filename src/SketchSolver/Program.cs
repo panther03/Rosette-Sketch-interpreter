@@ -22,7 +22,7 @@ namespace Semgus.Solver.Sketch {
             try {
                 (var ast, var env) = normalizer.Normalize(cst);
 
-                var printer = AdtBuilder.BuildAdtRepresentation(ast) + SyntaxGenPass.BuildSyntaxGenFns(ast);
+                var printer = AdtBuilder.BuildAdtRepresentation(ast) + SyntaxGenPass.BuildSyntaxGenFns(ast) + SemGenPass.BuildSemGenFns(ast);
 
 
                 // Print the AST

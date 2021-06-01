@@ -5,7 +5,7 @@ using Semgus.Syntax;
 
 namespace Semgus.Solver.Sketch {
     class AdtBuilder{
-        public static  string BuildAdtRepresentation(ISyntaxNode node) {
+        public static  string BuildAdtRepresentation(SemgusProblem node) {
             var visitor = new AdtBuildVisitor();
             return node.Accept(new AdtBuildVisitor()).ToString();
         }

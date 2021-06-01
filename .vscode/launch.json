@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/SketchSolver/bin/Debug/net5.0/SketchSolver.dll",
-            "args": [],
+            "args": ["/home/panther/SemGuS/Semgus-Lang/examples/max/max-exp.sem"],
             "cwd": "${workspaceFolder}/src/SketchSolver",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
