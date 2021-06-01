@@ -8,7 +8,7 @@ namespace Semgus.Solver.Sketch {
         private readonly static string GENERATOR_SKELETON = "assert bnd >= 0; int t = ??;";
         private static int rhs_id = 0;
         private static string lhs_name;
-        public static  string BuildSyntaxGenFns(ISyntaxNode node) {
+        public static  string BuildSyntaxGenFns(SemgusProblem node) {
             var visitor = new SyntaxGenPassVisitor();
             return node.Accept(new SyntaxGenPassVisitor()).ToString();
         }
