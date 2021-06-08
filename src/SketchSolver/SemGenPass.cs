@@ -112,14 +112,8 @@ namespace Semgus.Solver.Sketch {
             }
 
             public CodeTextBuilder Visit(AtomicRewriteExpression node) {
-                _builder.Write($"if (t==)");
-                using (_builder.InBraces()) {
-                    _builder.Write("return new Struct_");
+                    _builder.Write("Struct_");
                     DoVisit(node.Atom);
-                    using (_builder.InParens()) {}
-                    _builder.Write(";");
-                }
-                //rhs_id++;
                 return _builder;
             }
 
@@ -170,16 +164,8 @@ namespace Semgus.Solver.Sketch {
             }
 
             public CodeTextBuilder Visit(OpRewriteExpression node) {
-                _builder.Write($"if (t==)");
-                using (_builder.InBraces()) {
-                    _builder.Write("return new Struct_");
-                    DoVisit(node.Op);
-                    using (_builder.InParens()) {
-                        VisitEach(node.Operands," ");
-                    }
-                    _builder.Write(";");
-                }
-                //rhs_id++;
+                _builder.Write("Struct_");
+                DoVisit(node.Op);
                 return _builder;
             }
 
@@ -199,6 +185,7 @@ namespace Semgus.Solver.Sketch {
                         using (_builder.InBraces()) {
                             VisitEach(node.ProductionRules);
                         }
+                        _builder.LineBreak();
                     }
                 }
                 return _builder;
@@ -217,7 +204,11 @@ namespace Semgus.Solver.Sketch {
                             ris = interpretationGrammar.BranchTerms[currProduction.Nonterminal];
                         }
                         foreach (RuleInterpreter ri in ris) {
-                            ri.Interpret(node.)
+                            // what might I feed it here?
+                            foreach (IAssignmentStatement s in ri._steps) {
+                                _builder.Write(s.PrintCode());
+                                _builder.Write("; ");
+                            }
                         }
                     }
                 }
