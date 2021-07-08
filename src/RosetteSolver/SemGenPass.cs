@@ -5,7 +5,7 @@ using Semgus.Util;
 using System;
 using Semgus.Syntax;
 
-namespace Semgus.Solver.Sketch {
+namespace Semgus.Solver.Rosette {
     class SemGenPass{
         private static string stateTypeName;
         private static Production currProduction;
@@ -129,7 +129,7 @@ namespace Semgus.Solver.Sketch {
 
             public CodeTextBuilder Visit<TValue>(Literal<TValue> node) => _builder.Write(node.Value.ToString());
 
-            public CodeTextBuilder Visit(NonterminalTermDeclaration node) => _builder.Write($"{node.Name}=_gen(bnd-1), ");
+            public CodeTextBuilder Visit(NonterminalTermDeclaration node) => _builder.Write(node.Name);
 
             public CodeTextBuilder Visit(VariableEvaluation node) => _builder.Write(node.Variable.Name);
 
@@ -166,6 +166,8 @@ namespace Semgus.Solver.Sketch {
             public CodeTextBuilder Visit(OpRewriteExpression node) {
                 _builder.Write("Struct_");
                 DoVisit(node.Op);
+                _builder.Write(" ");
+                VisitEach(node.Operands," ");
                 return _builder;
             }
 
@@ -173,19 +175,19 @@ namespace Semgus.Solver.Sketch {
                 currProduction = node;
                 getSemFnReturnType(node,_builder);
                 using (_builder.InLineBreaks()) {
-                    _builder.Write($"{stateTypeName} {node.Nonterminal.Name}_sem");
-                        using (_builder.InParens()) {
-                            _builder.Write($"{node.Nonterminal.Name} inp");
-                            foreach ((String name,Type type) arg in insOuts.Item1) {
-                                _builder.Write($",{arg.type.Name} {arg.name}");
+                    using (_builder.InParens()) {
+                        _builder.Write($"define ({node.Nonterminal.Name}.Sem p");
+                        foreach ((String name,Type type) arg in insOuts.Item1) {
+                            _builder.Write($" {arg.name}");
+                        
                         }
-                    }
-                    using (_builder.InBraces()) {
-                        _builder.Write($"switch(inp) ");
-                        using (_builder.InBraces()) {
-                            VisitEach(node.ProductionRules);
-                        }
+                        _builder.Write(")");
                         _builder.LineBreak();
+                        using (_builder.InParens()) {
+                            _builder.Write($"destruct p");
+                                VisitEach(node.ProductionRules);
+                            _builder.LineBreak();
+                        }
                     }
                 }
                 return _builder;
@@ -193,23 +195,24 @@ namespace Semgus.Solver.Sketch {
 
             public CodeTextBuilder Visit(ProductionRule node) {
                 using (_builder.InLineBreaks()) {
-                    _builder.Write("case ");
-                    DoVisit(node.RewriteExpression);
-                    _builder.Write(":");
-                    using (_builder.InBraces()) {
-                        _builder.LineBreak();
-                        List<RuleInterpreter> ris;
-                        if (node.IsLeaf()) {
-                            ris = interpretationGrammar.LeafTerms[currProduction.Nonterminal];
-                        } else {
-                            ris = interpretationGrammar.BranchTerms[currProduction.Nonterminal];
+                    using (_builder.InBrackets()) {
+                        using (_builder.InParens()) {
+                            DoVisit(node.RewriteExpression);
                         }
-                        foreach (RuleInterpreter ri in ris) {
-                            // what might I feed it here?
-                            foreach (IAssignmentStatement s in ri._steps) {
-                                _builder.Write(s.PrintCode());
-                                _builder.Write("; ");
-                                _builder.LineBreak();
+                        _builder.Write(" ");
+                        using (_builder.InParens()) {
+                            List<RuleInterpreter> ris;
+                            if (node.IsLeaf()) {
+                                ris = interpretationGrammar.LeafTerms[currProduction.Nonterminal];
+                            } else {
+                                ris = interpretationGrammar.BranchTerms[currProduction.Nonterminal];
+                            }
+                            foreach (RuleInterpreter ri in ris) {
+                                // what might I feed it here?
+                                foreach (IAssignmentStatement s in ri._steps) {
+                                    _builder.Write(s.PrintCode());
+                                    _builder.Write("; ");
+                                }
                             }
                         }
                     }
