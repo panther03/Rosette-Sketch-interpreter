@@ -14,3 +14,7 @@ loop through each rule interpreter in the interpretation grammar
 
 subterms are (+ Start:t1 Start:t2)
 args are (Term Int Int Int)
+
+
+- move over to new interpreter stuff
+- move up printcode to non-terminal level (investigate interpretation grammar?)

@@ -201,19 +201,19 @@ namespace Semgus.Solver.Rosette {
                         }
                         _builder.Write(" ");
                         using (_builder.InParens()) {
-                            List<RuleInterpreter> ris;
-                            if (node.IsLeaf()) {
-                                ris = interpretationGrammar.LeafTerms[currProduction.Nonterminal];
-                            } else {
-                                ris = interpretationGrammar.BranchTerms[currProduction.Nonterminal];
+                        List<RuleInterpreter> ris;
+                        if (node.IsLeaf()) {
+                            ris = interpretationGrammar.LeafTerms[currProduction.Nonterminal];
+                        } else {
+                            ris = interpretationGrammar.BranchTerms[currProduction.Nonterminal];
+                        }
+                        foreach (RuleInterpreter ri in ris) {
+                            // what might I feed it here?
+                            foreach (IAssignmentStatement s in ri._steps) {
+                                _builder.Write(s.PrintCode());
+                                _builder.Write("; ");
                             }
-                            foreach (RuleInterpreter ri in ris) {
-                                // what might I feed it here?
-                                foreach (IAssignmentStatement s in ri._steps) {
-                                    _builder.Write(s.PrintCode());
-                                    _builder.Write("; ");
-                                }
-                            }
+                        }
                         }
                     }
                 }
