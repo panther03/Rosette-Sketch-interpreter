@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Semgus.Enumerator</RootNamespace>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\Semgus-Parser\src\csharp\ParserLibrary\ParserLibrary.csproj" />
+    <ProjectReference Include="..\Interpreter\Interpreter.csproj" />
+    <ProjectReference Include="..\Util\Util.csproj" />
+  </ItemGroup>
+
+</Project>

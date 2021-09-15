@@ -8,7 +8,6 @@ using Semgus.Syntax;
 namespace Semgus.Solver.Rosette {
     class SemGenPass{
         private static string stateTypeName;
-        private static Production currProduction;
 
         private static InterpretationGrammar interpretationGrammar;
         private static (List<(string,Type)>,List<(string,Type)>) insOuts;
@@ -172,7 +171,6 @@ namespace Semgus.Solver.Rosette {
             }
 
             public CodeTextBuilder Visit(Production node) {
-                currProduction = node;
                 getSemFnReturnType(node,_builder);
                 using (_builder.InLineBreaks()) {
                     using (_builder.InParens()) {
@@ -184,8 +182,24 @@ namespace Semgus.Solver.Rosette {
                         _builder.Write(")");
                         _builder.LineBreak();
                         using (_builder.InParens()) {
-                            _builder.Write($"destruct p");
-                                VisitEach(node.ProductionRules);
+                            _builder.Write("destruct p");
+                            
+                            List<RuleInterpreter> ris_l = interpretationGrammar.LeafTerms[node.Nonterminal];
+                            List<RuleInterpreter> ris_b = interpretationGrammar.BranchTerms[node.Nonterminal];
+
+                            int ind_l = 0;
+                            int ind_b = 0;
+
+                            for (int i = 0; i < node.ProductionRules.Count; i++) {
+                                if (node.ProductionRules[i].IsLeaf()) {
+                                    VisitProdRule(node.ProductionRules[i],ris_l[ind_l]);
+                                    ind_l++;
+                                } else {
+                                    VisitProdRule(node.ProductionRules[i],ris_b[ind_b]);
+                                    ind_b++;
+                                }
+                            }
+                             
                             _builder.LineBreak();
                         }
                     }
@@ -193,30 +207,26 @@ namespace Semgus.Solver.Rosette {
                 return _builder;
             }
 
-            public CodeTextBuilder Visit(ProductionRule node) {
-                using (_builder.InLineBreaks()) {
+            public CodeTextBuilder VisitProdRule(ProductionRule node, RuleInterpreter ri) {
+                 using (_builder.InLineBreaks()) {
                     using (_builder.InBrackets()) {
                         using (_builder.InParens()) {
                             DoVisit(node.RewriteExpression);
                         }
                         _builder.Write(" ");
                         using (_builder.InParens()) {
-                        List<RuleInterpreter> ris;
-                        if (node.IsLeaf()) {
-                            ris = interpretationGrammar.LeafTerms[currProduction.Nonterminal];
-                        } else {
-                            ris = interpretationGrammar.BranchTerms[currProduction.Nonterminal];
-                        }
-                        foreach (RuleInterpreter ri in ris) {
-                            // what might I feed it here?
+                            _builder.Write("begin ");
                             foreach (IAssignmentStatement s in ri._steps) {
                                 _builder.Write(s.PrintCode());
-                                _builder.Write("; ");
+                                _builder.Write(" ");
                             }
-                        }
                         }
                     }
                 }
+                return _builder;
+            }
+
+            public CodeTextBuilder Visit(ProductionRule node) {
                 return _builder;
             }
         }
