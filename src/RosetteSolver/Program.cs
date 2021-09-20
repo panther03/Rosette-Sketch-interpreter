@@ -22,7 +22,7 @@ namespace Semgus.Solver.Rosette {
             try {
                 (var ast, var env) = normalizer.Normalize(cst);
 
-                var printer = SemGenPass.BuildSemGenFns(ast);
+                var printer = AdtBuilder.BuildAdtRepresentation(ast) + "\n" + SyntaxGenPass.BuildSyntaxGenFns(ast) + "\n" + SemGenPass.BuildSemGenFns(ast);
 
 
                 // Print the AST

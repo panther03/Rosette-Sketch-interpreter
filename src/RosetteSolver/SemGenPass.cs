@@ -134,7 +134,10 @@ namespace Semgus.Solver.Rosette {
 
             public CodeTextBuilder Visit(Operator node) => _builder.Write(node.Text);
 
-            public CodeTextBuilder Visit(SemgusProblem node) => VisitEach(Just<ISyntaxNode>(node.SynthFun));
+            public CodeTextBuilder Visit(SemgusProblem node) {
+                _builder.Write("\n;;; SEMANTICS SECTION\n");
+                return VisitEach(Just<ISyntaxNode>(node.SynthFun));
+            }
 
             public CodeTextBuilder Visit(VariableDeclaration node) => _builder.Write($"{node.Type} {node.Name}");
 
@@ -215,11 +218,18 @@ namespace Semgus.Solver.Rosette {
                         }
                         _builder.Write(" ");
                         using (_builder.InParens()) {
-                            _builder.Write("begin ");
-                            foreach (IAssignmentStatement s in ri._steps) {
-                                _builder.Write(s.PrintCode());
-                                _builder.Write(" ");
-                            }
+                                            
+                            // hack for atomic productions (just one literal rule)
+                            // assume that if only one step exists, it's probably because the user wants a literal as a production
+                            if (ri._steps.Count == 1){
+                                _builder.Write(ri._steps[0].PrintCode());
+                            } else {
+                                _builder.Write("begin ");
+                                foreach (IAssignmentStatement s in ri._steps) {        
+                                    _builder.Write(s.PrintCode());
+                                    _builder.Write(" ");
+                                }
+                            }                            
                         }
                     }
                 }

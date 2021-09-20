@@ -19,5 +19,6 @@ namespace Semgus.Interpreter {
         }
 
         public string PrintCode() => _expression.Formula.PrintFormula();
+
     }
 }

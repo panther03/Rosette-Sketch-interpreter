@@ -10,12 +10,13 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/SketchSolver/bin/Debug/net5.0/SketchSolver.dll",
+            "program": "${workspaceFolder}/src/RosetteSolver/bin/Debug/net5.0/RosetteSolver.dll",
             "args": ["/home/panther/SemGuS/Semgus-Lang/examples/max/max-exp.sem"],
-            "cwd": "${workspaceFolder}/src/SketchSolver",
+            "cwd": "${workspaceFolder}/src/RosetteSolver",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "requireExactSource": false
         },
         {
             "name": ".NET Core Attach",
