@@ -30,6 +30,6 @@ namespace Semgus.Interpreter {
         }
 
         // assume lest element is output for now
-        public string PrintCode() => $"(define {_argVarNames[^1]} ({_termVar.Nonterminal}.Sem {_termVar.Name} {string.Join(" ", _argVarNames.Take(_argVarNames.Count-2))}))";
+        public string PrintCode() => $"(define {_argVarNames[^1]} ({_termVar.Nonterminal}.Sem {_termVar.Name} {string.Join(" ", _argVarNames.Take(_argVarNames.Count-1))}))";
     }
 }

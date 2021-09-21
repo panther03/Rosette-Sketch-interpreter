@@ -224,10 +224,10 @@ namespace Semgus.Solver.Rosette {
                             if (ri._steps.Count == 1){
                                 _builder.Write(ri._steps[0].PrintCode());
                             } else {
-                                _builder.Write("begin ");
+                                _builder.Write("begin");
                                 foreach (IAssignmentStatement s in ri._steps) {        
-                                    _builder.Write(s.PrintCode());
                                     _builder.Write(" ");
+                                    _builder.Write(s.PrintCode());
                                 }
                             }                            
                         }

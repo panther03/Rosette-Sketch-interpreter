@@ -77,7 +77,7 @@ namespace Semgus.Solver.Rosette {
 
             public CodeTextBuilder Visit(SemgusProblem node) {
                 _builder.Write("\n;;; SYNTAX SECTION\n");
-                _builder.Write($"\n(currrent-grammar-depth {DEPTH})\n");
+                _builder.Write($"\n(current-grammar-depth {DEPTH})\n");
                 using (_builder.InParens()) {
                     _builder.Write("define-grammar (gram)");
                     VisitEach(Just<ISyntaxNode>(node.SynthFun));
