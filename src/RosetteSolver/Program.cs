@@ -8,7 +8,7 @@ using Semgus.Syntax;
 namespace Semgus.Solver.Rosette {
     class Program {
 
-        public readonly string HEADER = @"#lang rosette
+        public static readonly string HEADER = @"#lang rosette
 
 (require
   rosette/lib/match
@@ -16,7 +16,11 @@ namespace Semgus.Solver.Rosette {
   rosette/lib/angelic
   rosette/lib/synthax)
 
-(current-bitwidth #f)";
+(current-bitwidth #f)
+
+; hack because i can't get the interpreter to generate #t and #f
+(define True #t)
+(define False #f)";
 
         static void Main(string[] args) {
             if (args.Length != 1) {

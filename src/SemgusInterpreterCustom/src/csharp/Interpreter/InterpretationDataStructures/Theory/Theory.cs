@@ -35,7 +35,7 @@ namespace Semgus.Interpreter {
                     }
                 ),
 
-                new SmtLibFunction("||",
+                new SmtLibFunction("||  ",
                     new SmtLibFunction.TypeSignature(
                         typeof(bool),
                         new[]{typeof(bool)},
