@@ -21,7 +21,7 @@ namespace Semgus.Interpreter {
 
         private static Theory MakeBasicLibrary() {
             var functions = new[] {
-                new SmtLibFunction("and",
+                new SmtLibFunction("&&",
                     new SmtLibFunction.TypeSignature(
                         typeof(bool),
                         new[]{typeof(bool)},
@@ -35,7 +35,7 @@ namespace Semgus.Interpreter {
                     }
                 ),
 
-                new SmtLibFunction("or",
+                new SmtLibFunction("||",
                     new SmtLibFunction.TypeSignature(
                         typeof(bool),
                         new[]{typeof(bool)},
@@ -100,7 +100,7 @@ namespace Semgus.Interpreter {
                     }
                 ),
 
-                new SmtLibFunction("ite",
+                new SmtLibFunction("if",
                     new SmtLibFunction.TypeSignature(
                         typeof(int),
                         new[]{typeof(bool), typeof(int), typeof(int)}

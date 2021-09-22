@@ -69,7 +69,7 @@ namespace Semgus.Solver.Rosette {
 
             public CodeTextBuilder Visit<TValue>(Literal<TValue> node) => _builder.Write(node.Value.ToString());
 
-            public CodeTextBuilder Visit(NonterminalTermDeclaration node) => _builder.Write($"({lhs_name})");
+            public CodeTextBuilder Visit(NonterminalTermDeclaration node) => _builder.Write($"({node.Nonterminal})");
 
             public CodeTextBuilder Visit(VariableEvaluation node) => _builder.Write(node.Variable.Name);
 

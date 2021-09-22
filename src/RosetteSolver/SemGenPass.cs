@@ -217,20 +217,20 @@ namespace Semgus.Solver.Rosette {
                             DoVisit(node.RewriteExpression);
                         }
                         _builder.Write(" ");
-                        using (_builder.InParens()) {
                                             
-                            // hack for atomic productions (just one literal rule)
-                            // assume that if only one step exists, it's probably because the user wants a literal as a production
-                            if (ri._steps.Count == 1){
-                                _builder.Write(ri._steps[0].PrintCode());
-                            } else {
+                        // hack for atomic productions (just one literal rule)
+                        // assume that if only one step exists, it's probably because the user wants a literal as a production
+                        if (ri._steps.Count == 1){
+                            _builder.Write(ri._steps[0].PrintCode());
+                        } else {
+                            using (_builder.InParens()) {
                                 _builder.Write("begin");
                                 foreach (IAssignmentStatement s in ri._steps) {        
                                     _builder.Write(" ");
                                     _builder.Write(s.PrintCode());
                                 }
-                            }                            
-                        }
+                            }
+                        }                            
                     }
                 }
                 return _builder;

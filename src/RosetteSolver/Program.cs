@@ -7,6 +7,17 @@ using Semgus.Syntax;
 
 namespace Semgus.Solver.Rosette {
     class Program {
+
+        public readonly string HEADER = @"#lang rosette
+
+(require
+  rosette/lib/match
+  rosette/lib/destruct
+  rosette/lib/angelic
+  rosette/lib/synthax)
+
+(current-bitwidth #f)";
+
         static void Main(string[] args) {
             if (args.Length != 1) {
                 Console.Error.WriteLine("Expects one argument: a Semgus file to parse");
@@ -22,7 +33,7 @@ namespace Semgus.Solver.Rosette {
             try {
                 (var ast, var env) = normalizer.Normalize(cst);
 
-                var printer = AdtBuilder.BuildAdtRepresentation(ast) + "\n" + SyntaxGenPass.BuildSyntaxGenFns(ast) + "\n" + SemGenPass.BuildSemGenFns(ast);
+                var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepresentation(ast) + "\n" + SyntaxGenPass.BuildSyntaxGenFns(ast) + "\n" + SemGenPass.BuildSemGenFns(ast);
 
 
                 // Print the AST
