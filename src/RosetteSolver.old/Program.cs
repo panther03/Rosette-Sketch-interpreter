@@ -5,8 +5,23 @@ using Antlr4.Runtime;
 using Semgus.Parser.Internal;
 using Semgus.Syntax;
 
-namespace Semgus.Solver.Sketch {
+namespace Semgus.Solver.Rosette {
     class Program {
+
+        public static readonly string HEADER = @"#lang rosette
+
+(require
+  rosette/lib/match
+  rosette/lib/destruct
+  rosette/lib/angelic
+  rosette/lib/synthax)
+
+(current-bitwidth #f)
+
+; hack because i can't get the interpreter to generate #t and #f
+(define True #t)
+(define False #f)";
+
         static void Main(string[] args) {
             if (args.Length != 1) {
                 Console.Error.WriteLine("Expects one argument: a Semgus file to parse");
@@ -22,7 +37,7 @@ namespace Semgus.Solver.Sketch {
             try {
                 (var ast, var env) = normalizer.Normalize(cst);
 
-                var printer = AdtBuilder.BuildAdtRepresentation(ast) + SyntaxGenPass.BuildSyntaxGenFns(ast) + SemGenPass.BuildSemGenFns(ast);
+                var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepresentation(ast) + "\n" + SyntaxGenPass.BuildSyntaxGenFns(ast) + "\n" + SemGenPass.BuildSemGenFns(ast);
 
 
                 // Print the AST

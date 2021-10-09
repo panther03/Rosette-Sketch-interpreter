@@ -1,0 +1,3 @@
+[submodule "Semgus-Interpreter"]
+	path = Semgus-Interpreter
+	url = https://github.com/SemGuS-git/Semgus-Interpreter.git

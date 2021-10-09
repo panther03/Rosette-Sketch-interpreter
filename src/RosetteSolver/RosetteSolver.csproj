@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj" />
-    <ProjectReference Include="../SemgusInterpreterCustom/src/csharp/Interpreter/Interpreter.csproj" />
+    <ProjectReference Include="../../Semgus-Interpreter/src/Interpreter/Interpreter.csproj" />
   </ItemGroup>
 
 </Project>
