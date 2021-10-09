@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../../Semgus-Interpreter/src/Interpreter/Interpreter.csproj" />
+    <ProjectReference Include="../../Semgus-Interpreter/src/Solvers/Solvers.csproj" />
+    <ProjectReference Include="../../Semgus-Interpreter/Semgus-Parser/src/csharp/ParserLibrary/ParserLibrary.csproj" />
   </ItemGroup>
 
 </Project>

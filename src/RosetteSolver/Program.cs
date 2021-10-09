@@ -1,9 +1,13 @@
+using Semgus.Interpreter;
+using Semgus.Parser;
+using Semgus.Syntax;
 using System;
 using System.IO;
-using System.Runtime.ExceptionServices;
-using Antlr4.Runtime;
-using Semgus.Parser.Internal;
-using Semgus.Syntax;
+using System.Collections.Generic;
+
+// normal to have to include this for InductiveConstraintAnalyzer?
+using Semgus.Solvers.Enumerative;
+
 
 namespace Semgus.Solver.Rosette {
     class Program {
@@ -23,48 +27,33 @@ namespace Semgus.Solver.Rosette {
 (define False #f)";
 
         static void Main(string[] args) {
-            if (args.Length != 1) {
-                Console.Error.WriteLine("Expects one argument: a Semgus file to parse");
+            if (args.Length != 2) {
+                Console.Error.WriteLine("Expects two arguments: a Semgus file to parse, and an output racket file.");
             }
             
-            var filename = args[0];
+            var infile = args[0];
+            var outfile = args[1];
 
-            SemgusLexer lexer = new SemgusLexer(new AntlrFileStream(filename));
-            SemgusParser parser = new SemgusParser(new CommonTokenStream(lexer));
+            var theory = BasicLibrary.Instance; // default theory
+            var constraintAnalyzer = new InductiveConstraintAnalyzer(theory);
 
-            var cst = parser.start();
-            var normalizer = new SyntaxNormalizer();
-            try {
-                (var ast, var env) = normalizer.Normalize(cst);
+            var ast = Parse(infile);
+            var grammar = InterpretationGrammar.FromAst(ast, theory);
+            var spec = constraintAnalyzer.Analyze(ast);
 
-                var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepresentation(ast) + "\n" + SyntaxGenPass.BuildSyntaxGenFns(ast) + "\n" + SemGenPass.BuildSemGenFns(ast);
-
-
-                // Print the AST
-                System.Console.WriteLine(env.PrettyPrint());
-                System.Console.WriteLine(printer);
-            } catch (SemgusSyntaxException e) {
-                using (var file = new StreamReader(filename)) {
-                    PrintExceptionAndItsLocationInFile(e, file);
-                }
-            }
-            System.Console.WriteLine("Done");
+            var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepr(grammar) + "\n";
+            //                            + SyntaxGenPass.BuildSyntaxGenFns(grammar) + "\n"
+            //                            + SemGenPass.BuildSemGenFns(grammar) + "\n"
+            //                            + ConstraintGenPass.BuildConstraints(spec);
         }
 
-        private static void PrintExceptionAndItsLocationInFile(SemgusSyntaxException e, StreamReader file) {
-            System.Console.WriteLine(e.Message);
-            var l0 = e.ParserContext.Start.Line;
-            var l1 = e.ParserContext.Stop.Line;
-            int k = 0;
-            string line;
-            while ((line = file.ReadLine()) != null) {
-                if (k == (l0 - 1)) {
-                    Console.WriteLine("--- BEGIN ERROR SECTION ---");
-                } else if (k == l1) {
-                    Console.WriteLine("---  END ERROR SECTION  ---");
-                }
-                Console.WriteLine(line);
-                k++;
+        public static SemgusProblem Parse(string filePath) {
+            using var writer = new StringWriter();
+
+            if (new SemgusParser(filePath).TryParse(out var ast, writer)) {
+                return ast;
+            } else {
+                throw new Exception(writer.ToString());
             }
         }
     }
