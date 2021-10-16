@@ -1,0 +1,52 @@
+#lang rosette
+
+(require
+  rosette/lib/match
+  rosette/lib/destruct
+  rosette/lib/angelic
+  rosette/lib/synthax)
+
+(current-bitwidth #f)
+
+; hack because i can't get the interpreter to generate #t and #f
+(define True #t)
+(define False #f)
+
+;;; STRUCT DECL SECTION
+
+; E nonterminal
+(struct Struct_$+ (tE0 tE1))
+(struct Struct_$ite (tB0 tE1 tE2))
+(struct Struct_$x ())
+(struct Struct_$y ())
+(struct Struct_$0 ())
+(struct Struct_$1 ())
+; B nonterminal
+(struct Struct_$not (tB0))
+(struct Struct_$and (tB0 tB1))
+(struct Struct_$lt (tE0 tE1))
+(struct Struct_$true ())
+(struct Struct_$false ())
+
+;;; SYNTAX SECTION
+
+(current-grammar-depth 4)
+(define-grammar (gram)
+  [E
+    (choose
+      (Struct_$+ (E) (E))
+      (Struct_$ite (B) (E) (E))
+      (Struct_$x)
+      (Struct_$y)
+      (Struct_$0)
+      (Struct_$1)
+    )]
+  [B
+    (choose
+      (Struct_$not (B))
+      (Struct_$and (B) (B))
+      (Struct_$lt (E) (E))
+      (Struct_$true)
+      (Struct_$false)
+    )]
+)
