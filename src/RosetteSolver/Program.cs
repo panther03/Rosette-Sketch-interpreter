@@ -42,30 +42,13 @@ namespace Semgus.Solver.Rosette {
             var grammar = InterpretationGrammar.FromAst(ast, theory);
             var spec = constraintAnalyzer.Analyze(ast);
 
-            var combinedTerms = combineTerms(grammar);
-
-            var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepr(combinedTerms) + "\n"
-                                        + SyntaxBuilder.BuildSyntaxGenFns(combinedTerms) + "\n";
-            //                            + SemGenPass.BuildSemGenFns(grammar) + "\n"
+            var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepr(grammar) + "\n"
+                                        + SyntaxBuilder.BuildSyntaxGenFns(grammar) + "\n"
+                                        + SemanticsBuilder.BuildSemGenFns(grammar) + "\n";
             //                            + ConstraintGenPass.BuildConstraints(spec);
 
-            File.WriteAllText("outfile", printer);
+            File.WriteAllText(outfile, printer);
         }
-
-        static DictOfList<Nonterminal, ProductionRuleInterpreter> combineTerms(InterpretationGrammar grammar) {
-            var AllTerms = new DictOfList<Nonterminal, ProductionRuleInterpreter>();
-            // makes assumption that branchterms and leafterms have the same nonterminals
-            var AllKeys = grammar.BranchTerms.Keys;
-            foreach (var key in grammar.LeafTerms.Keys) {
-                if (grammar.BranchTerms.ContainsKey(key)) {
-                    AllTerms.AddCollection(key,(grammar.BranchTerms[key].Concat(grammar.LeafTerms[key])).ToList());
-                } else {
-                    AllTerms.AddCollection(key,grammar.LeafTerms[key]);
-                }
-            }
-            return AllTerms;
-        }
-
         public static SemgusProblem Parse(string filePath) {
             using var writer = new StringWriter();
 
