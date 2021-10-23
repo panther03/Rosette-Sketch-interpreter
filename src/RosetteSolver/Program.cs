@@ -44,8 +44,8 @@ namespace Semgus.Solver.Rosette {
 
             var printer = HEADER + "\n" + AdtBuilder.BuildAdtRepr(grammar) + "\n"
                                         + SyntaxBuilder.BuildSyntaxGenFns(grammar) + "\n"
-                                        + SemanticsBuilder.BuildSemGenFns(grammar) + "\n";
-            //                            + ConstraintGenPass.BuildConstraints(spec);
+                                        + SemanticsBuilder.BuildSemGenFns(grammar) + "\n"
+                                        + ConstraintsBuilder.BuildConstraintFn(spec);
 
             File.WriteAllText(outfile, printer);
         }

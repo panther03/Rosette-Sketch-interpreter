@@ -69,3 +69,11 @@
       [(struct Struct_$and bt1 bt2) (begin (define bv1 (B.Sem bt1 x y)) (define bv2 (B.Sem bt2 x y)) (and bv1 bv2))]
       [(struct Struct_$lt et1 et2) (begin (define iv1 (E.Sem et1 x y)) (define iv2 (E.Sem et2 x y)) (< iv1 iv2))]))
 )
+
+;;; CONSTRAINTS SECTION
+
+(define (sol) (gram))
+(define sol_E
+(synthesize
+#:forall (list)
+#:guarantee (assert(equal? (E.Sem (sol) 4 2) 4))))
