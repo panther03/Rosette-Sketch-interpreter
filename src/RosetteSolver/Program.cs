@@ -25,7 +25,8 @@ namespace Semgus.Solver.Rosette {
 
 ; hack because i can't get the interpreter to generate #t and #f
 (define True #t)
-(define False #f)";
+(define False #f)
+(define (ite c x y) (if c x y))";
 
         static void Main(string[] args) {
             if (args.Length != 2) {

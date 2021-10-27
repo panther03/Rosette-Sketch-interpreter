@@ -36,51 +36,49 @@ namespace Semgus.Solver.Rosette {
         
             _builder.Write("\n;;; SEMANTICS SECTION\n");
             
-            using (_builder.InParens()) {
-                foreach (Nonterminal nt in g.Nonterminals) {
+            foreach (Nonterminal nt in g.Nonterminals) {
+                _builder.LineBreak();
+                using (_builder.InParens()) {
+                    _builder.Write($"define ({nt.Name}.Sem p");
+                    // TODO: is this safe? all of the production rule interpreters
+                    // for a nonterminal have the same input names, but it's not tied to
+                    // the nonterminal directly
+                    foreach (VariableInfo in_var in g.Productions[nt][0].InputVariables) {
+                        _builder.Write($" {in_var.Name}");
+                    }
+                    _builder.Write(")");
+
                     _builder.LineBreak();
                     using (_builder.InParens()) {
-                        _builder.Write($"define ({nt.Name}.Sem p");
-                        // TODO: is this safe? all of the production rule interpreters
-                        // for a nonterminal have the same input names, but it's not tied to
-                        // the nonterminal directly
-                        foreach (VariableInfo in_var in g.Productions[nt][0].InputVariables) {
-                            _builder.Write($" {in_var.Name}");
-                        }
-                        _builder.Write(")");
-
-                        _builder.LineBreak();
-                        using (_builder.InParens()) {
-                            _builder.Write("destruct p");
-                            foreach (ProductionRuleInterpreter pi in g.Productions[nt]) {
-                                _builder.LineBreak();
-                                using (_builder.InBrackets()) {
-                                    using (_builder.InParens()) {
-                                        _builder.Write($"struct Struct_{pi.Syntax.Constructor}");
-                                        foreach (TermVariableInfo v in pi.Syntax.ChildTerms) {
-                                            _builder.Write($" {v.Name}");
-                                        }
+                        _builder.Write("destruct p");
+                        foreach (ProductionRuleInterpreter pi in g.Productions[nt]) {
+                            _builder.LineBreak();
+                            using (_builder.InBrackets()) {
+                                using (_builder.InParens()) {
+                                    _builder.Write($"Struct_{pi.Syntax.Constructor}");
+                                    foreach (TermVariableInfo v in pi.Syntax.ChildTerms) {
+                                        _builder.Write($" {v.Name}");
                                     }
-                                    _builder.Write(" ");
-                                    // hack for atomic productions
-                                    if (pi.Semantics[0].Steps.Count == 1) {
-                                        GenerateRuleSteps(pi.Semantics[0].Steps[0]);
-                                    } else {
-                                        using (_builder.InParens()) {
-                                            _builder.Write("begin");
-                                            foreach (IInterpretationStep step in pi.Semantics[0].Steps) {
-                                                _builder.Write(" ");
-                                                GenerateRuleSteps(step);
-                                            }
-                                        }
-                                    }
-                                    
                                 }
+                                _builder.Write(" ");
+                                // hack for atomic productions
+                                if (pi.Semantics[0].Steps.Count == 1) {
+                                    GenerateRuleSteps(pi.Semantics[0].Steps[0]);
+                                } else {
+                                    using (_builder.InParens()) {
+                                        _builder.Write("begin");
+                                        foreach (IInterpretationStep step in pi.Semantics[0].Steps) {
+                                            _builder.Write(" ");
+                                            GenerateRuleSteps(step);
+                                        }
+                                    }
+                                }
+                                
                             }
                         }
                     }
-                    _builder.LineBreak();
                 }
+                _builder.LineBreak();
             }
             return _builder.ToString();
         }

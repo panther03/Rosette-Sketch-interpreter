@@ -5,7 +5,7 @@ using Semgus.Syntax;
 namespace Semgus.Solver.Rosette {
     class SyntaxBuilder {
         private static readonly CodeTextBuilder _builder = new CodeTextBuilder();
-        private readonly static int DEPTH = 4;
+        private readonly static int DEPTH = 3;
         public static string BuildSyntaxGenFns(InterpretationGrammar g) {
         
             _builder.Write("\n;;; SYNTAX SECTION\n");
