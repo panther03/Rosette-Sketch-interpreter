@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/RosetteSolver/bin/Debug/net5.0/RosetteSolver.dll",
-            "args": ["../../Semgus-Interpreter/Semgus-Benchmarks/basic/max-exp.sem","../../out.rkt"],
+            "args": ["../../Semgus-Interpreter/Semgus-Benchmarks/basic/mul-impv.sem","../../out.rkt"],
             "cwd": "${workspaceFolder}/src/RosetteSolver",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
