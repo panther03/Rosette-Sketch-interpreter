@@ -25,7 +25,7 @@
 (struct Struct_$assign-c (e.t1))
 (struct Struct_$cons (s.t1 s.t2))
 (struct Struct_$while (b.t1 s.t1))
-(struct Struct_$ite (b.t1 s.t1 s.t2))
+(struct Struct_$site (b.t1 s.t1 s.t2))
 ; E nonterminal
 (struct Struct_$x ())
 (struct Struct_$y ())
@@ -59,7 +59,7 @@
       (Struct_$assign-c (E))
       (Struct_$cons (S) (S))
       (Struct_$while (B) (S))
-      (Struct_$ite (B) (S) (S))
+      (Struct_$site (B) (S) (S))
     )]
   [E
     (choose
@@ -84,25 +84,29 @@
 
 ;;; SEMANTICS SECTION
 
-(define (Start.Sem p x0 y0)
-  (destruct p
-    [(Struct_$eval s.t1) (begin (define c0 0) (define ( x2 y2 c2) (S.Sem s.t1 x0 y0 c0)) c2)]))
-(define (S.Sem p x0 y0 c0)
-  (destruct p
-    [(Struct_$pass) (begin  (values x0 y0 c0))]
-    [(Struct_$throw) (begin  (values x0 y0 c0))]
-    [(Struct_$assign-x e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0))  (values e.v1 y0 c0))]
-    [(Struct_$assign-y e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0))  (values x0 e.v1 c0))]
-    [(Struct_$assign-c e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0))  (values x0 y0 e.v1))]
-    [(Struct_$cons s.t1 s.t2) (begin (define ( x1 y1 c1) (S.Sem s.t1 x0 y0 c0)) (define ( x2 y2 c2) (S.Sem s.t2 x1 y1 c1))  (values x2 y2 c2))]
-    [(Struct_$while b.t1 s.t1)  (define b.v1 (B.Sem b.t1 x0 y0 c0))    (if (b.v1)
-        ((begin(define b.v1 (B.Sem b.t1 x0 y0 c0))(define ( x1 y1 c1) (S.Sem s.t1 x0 y0 c0))(define ( x2 y2 c2) (S.Sem s.t x1 y1 c1))  (values x2 y2 c2)))
-        ((begin(define b.v1 (B.Sem b.t1 x0 y0 c0))  (values x0 y0 c0))))]
-    [(Struct_$ite b.t1 s.t1 s.t2)  (define b.v1 (B.Sem b.t1 x0 y0 c0))    (if (b.v1)
-        ((begin(define b.v1 (B.Sem b.t1 x0 y0 c0))(define ( x2 y2 c2) (S.Sem s.t1 x0 y0 c0))  (values x2 y2 c2)))
-        ((begin(define b.v1 (B.Sem b.t1 x0 y0 c0))(define ( x2 y2 c2) (S.Sem s.t2 x0 y0 c0))  (values x2 y2 c2))))]))
-(define (E.Sem p x0 y0 c0)
-  (destruct p
+(define (Start.Sem  start.t x0 y0)
+  (destruct start.t
+    [(Struct_$eval s.t1) (begin (define c0 0) (define-values ( x2 y2 c2) (S.Sem s.t1 x0 y0 c0)) c2)]
+  )
+)
+(define (S.Sem  s.t x0 y0 c0)
+  (destruct s.t
+    [(Struct_$pass) (begin (values x0 y0 c0))]
+    [(Struct_$throw) (begin (values x0 y0 c0))]
+    [(Struct_$assign-x e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (values e.v1 y0 c0))]
+    [(Struct_$assign-y e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (values x0 e.v1 c0))]
+    [(Struct_$assign-c e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (values x0 y0 e.v1))]
+    [(Struct_$cons s.t1 s.t2) (begin (define-values ( x1 y1 c1) (S.Sem s.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t2 x1 y1 c1)) (values x2 y2 c2))]
+    [(Struct_$while b.t1 s.t1) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (if (b.v1)
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define-values ( x1 y1 c1) (S.Sem s.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t x1 y1 c1)) (values x2 y2 c2))
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (values x0 y0 c0))))]
+    [(Struct_$site b.t1 s.t1 s.t2) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (if (b.v1)
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t1 x0 y0 c0)) (values x2 y2 c2))
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t2 x0 y0 c0)) (values x2 y2 c2))))]
+  )
+)
+(define (E.Sem  e.t x0 y0 c0)
+  (destruct e.t
     [(Struct_$x)  x0]
     [(Struct_$y)  y0]
     [(Struct_$c)  c0]
@@ -110,14 +114,18 @@
     [(Struct_$1)  1]
     [(Struct_$+ e.t1 e.t2) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (define e.v2 (E.Sem e.t2 x0 y0 c0)) (+ e.v1 e.v2))]
     [(Struct_$- e.t1 e.t2) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (define e.v2 (E.Sem e.t2 x0 y0 c0)) (- e.v1 e.v2))]
-    [(Struct_$ite b.t1 e.t1 e.t2) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define e.v1 (E.Sem e.t1 x0 y0 c0)) (define e.v2 (E.Sem e.t2 x0 y0 c0)) (ite b.v1 e.v1 e.v2))]))
-(define (B.Sem p x0 y0 c0)
-  (destruct p
+    [(Struct_$ite b.t1 e.t1 e.t2) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define e.v1 (E.Sem e.t1 x0 y0 c0)) (define e.v2 (E.Sem e.t2 x0 y0 c0)) (ite b.v1 e.v1 e.v2))]
+  )
+)
+(define (B.Sem  b.t x0 y0 c0)
+  (destruct b.t
     [(Struct_$true)  true]
     [(Struct_$false)  false]
     [(Struct_$not b.t1) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) b.v1)]
     [(Struct_$and b.t1 b.t2) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define b.v2 (B.Sem b.t2 x0 y0 c0)) (and b.v1 b.v2))]
-    [(Struct_$lt e.t1 e.t2) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (define e.v2 (E.Sem e.t2 x0 y0 c0)) (< e.v1 e.v2))]))
+    [(Struct_$lt e.t1 e.t2) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (define e.v2 (E.Sem e.t2 x0 y0 c0)) (< e.v1 e.v2))]
+  )
+)
 
 ;;; CONSTRAINTS SECTION
 

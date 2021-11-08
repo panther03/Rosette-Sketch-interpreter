@@ -21,13 +21,14 @@ namespace Semgus.Solver.Rosette {
                     } 
                     break;
                 case TermEvaluation t_s:
-                    _builder.Write(" ");
+                    builder.Write(" ");
                     using (builder.InParens()) {
-                        builder.Write("define ");
                         if (t_s.OutputVariables.Count() == 1) {
+                            builder.Write("define ");
                             if (cond_var == "NO_COND") cond_var = t_s.OutputVariables[0].Name;
                             builder.Write($"{t_s.OutputVariables[0].Name} ");
                         } else {
+                            builder.Write("define-values ");
                             using (builder.InParens()) {
                                 foreach (VariableInfo out_var in t_s.OutputVariables) {
                                     if ((index = (outvars.GetValueOrDefault(out_var, -1))) != -1) {
@@ -61,8 +62,8 @@ namespace Semgus.Solver.Rosette {
         }
 
         private static void GenerateOutputStatement(CodeTextBuilder builder, string[] outvals) {
-            builder.Write(" ");
             if (outvals.Count() == 1) {
+                builder.Write(" ");
                 builder.Write(outvals[0]);
             } else {
                 builder.Write(" ");
@@ -103,7 +104,7 @@ namespace Semgus.Solver.Rosette {
 
                 _builder.LineBreak();
                 using (_builder.InParens()) {
-                    _builder.Write($"define ({nt.Name}.Sem p");
+                    _builder.Write($"define ({nt.Name}.Sem  {g.Productions[nt][0].Syntax.TermVariable.Name}");
                     // TODO: is this safe? all of the production rule interpreters
                     // for a nonterminal have the same input names, but it's not tied to
                     // the nonterminal directly
@@ -114,7 +115,7 @@ namespace Semgus.Solver.Rosette {
 
                     _builder.LineBreak();
                     using (_builder.InParens()) {
-                        _builder.Write("destruct p");
+                        _builder.Write($"destruct {g.Productions[nt][0].Syntax.TermVariable.Name}");
                         foreach (ProductionRuleInterpreter pi in g.Productions[nt]) {
                             string[] outvals = new string[pi.OutputVariables.Count];
                             cond_var = "NO_COND";
@@ -143,20 +144,21 @@ namespace Semgus.Solver.Rosette {
 
                                         // DANGER!! we are assuming that the first step is the one that sets the cond variable.
                                         // otherwise you have to do multiple passes. this can be fixed in the future.
-                                        GenerateRuleSteps(_builder, pi.Semantics[0].Steps[0], outvars, outvals);
-                                        GenerateSemantics(if_builder, pi.Semantics[0], outvars, outvals); 
-                                        GenerateSemantics(else_builder, pi.Semantics[1], outvars, outvals); 
                                         using (_builder.InParens()) {
-                                            _builder.Write($"if ({cond_var})");
-                                            _builder.LineBreak();
+                                            _builder.Write("begin");
+                                            GenerateRuleSteps(_builder, pi.Semantics[0].Steps[0], outvars, outvals);
+                                            GenerateSemantics(if_builder, pi.Semantics[0], outvars, outvals); 
+                                            GenerateSemantics(else_builder, pi.Semantics[1], outvars, outvals); 
+                                            _builder.Write(" ");
                                             using (_builder.InParens()) {
+                                                _builder.Write($"if ({cond_var})");
+                                                _builder.LineBreak();
                                                 _builder.Write(if_builder.ToString());
-                                            }
-                                            _builder.LineBreak();
-                                            using (_builder.InParens()) {
+                                                _builder.LineBreak();
                                                 _builder.Write(else_builder.ToString());
                                             }
                                         }
+                                        
                                         break;
                                     default:
                                         _builder.Write("UNIMPLEMENTED"); break;
@@ -164,7 +166,9 @@ namespace Semgus.Solver.Rosette {
                                 
                             }
                         }
+                        _builder.LineBreak();
                     }
+                    _builder.LineBreak();
                 }
                 _builder.LineBreak();
             }
