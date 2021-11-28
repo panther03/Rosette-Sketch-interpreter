@@ -13,6 +13,9 @@
 (define False #f)
 (define (ite c x y) (if c x y))
 
+(define-syntax-rule (set-vals-list __depth x y z val)
+     (define-values (__depth x y z) (let ([l val]) (values (first l) (second l) (third l) (fourth l)))))
+
 ;;; STRUCT DECL SECTION
 
 ; Start nonterminal
@@ -86,23 +89,24 @@
 
 (define (Start.Sem  start.t x0 y0)
   (destruct start.t
-    [(Struct_$eval s.t1) (begin (define c0 0) (define-values ( x2 y2 c2) (S.Sem s.t1 x0 y0 c0)) c2)]
+    [(Struct_$eval s.t1) (begin (define c0 0) (set-vals-list __depth_o0  x2 y2 c2 (S.Sem s.t1 __depth x0 y0 c0)) c2)]
   )
 )
-(define (S.Sem  s.t x0 y0 c0)
+(define (S.Sem  s.t __depth x0 y0 c0)
+  (assert (>= __depth 0))
   (destruct s.t
-    [(Struct_$pass) (begin (values x0 y0 c0))]
-    [(Struct_$throw) (begin (values x0 y0 c0))]
-    [(Struct_$assign-x e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (values e.v1 y0 c0))]
-    [(Struct_$assign-y e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (values x0 e.v1 c0))]
-    [(Struct_$assign-c e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (values x0 y0 e.v1))]
-    [(Struct_$cons s.t1 s.t2) (begin (define-values ( x1 y1 c1) (S.Sem s.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t2 x1 y1 c1)) (values x2 y2 c2))]
+    [(Struct_$pass) (begin (list (- __depth 1) x0 y0 c0))]
+    [(Struct_$throw) (begin (list (- __depth 1) x0 y0 c0))]
+    [(Struct_$assign-x e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (list (- __depth 1) e.v1 y0 c0))]
+    [(Struct_$assign-y e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (list (- __depth 1) x0 e.v1 c0))]
+    [(Struct_$assign-c e.t1) (begin (define e.v1 (E.Sem e.t1 x0 y0 c0)) (list (- __depth 1) x0 y0 e.v1))]
+    [(Struct_$cons s.t1 s.t2) (begin (set-vals-list __depth_o0  x1 y1 c1 (S.Sem s.t1 __depth x0 y0 c0)) (set-vals-list __depth_o1  x2 y2 c2 (S.Sem s.t2 __depth_o0 x1 y1 c1)) (list (- __depth_o1 1) x2 y2 c2))]
     [(Struct_$while b.t1 s.t1) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (if (b.v1)
-          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define-values ( x1 y1 c1) (S.Sem s.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t x1 y1 c1)) (values x2 y2 c2))
-          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (values x0 y0 c0))))]
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (set-vals-list __depth_o0  x1 y1 c1 (S.Sem s.t1 __depth x0 y0 c0)) (set-vals-list __depth_o1  x2 y2 c2 (S.Sem s.t __depth_o0 x1 y1 c1)) (list (- __depth_o1 1) x2 y2 c2))
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (list (- __depth 1) x0 y0 c0))))]
     [(Struct_$site b.t1 s.t1 s.t2) (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (if (b.v1)
-          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t1 x0 y0 c0)) (values x2 y2 c2))
-          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (define-values ( x2 y2 c2) (S.Sem s.t2 x0 y0 c0)) (values x2 y2 c2))))]
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (set-vals-list __depth_o0  x2 y2 c2 (S.Sem s.t1 __depth x0 y0 c0)) (list (- __depth_o0 1) x2 y2 c2))
+          (begin (define b.v1 (B.Sem b.t1 x0 y0 c0)) (set-vals-list __depth_o0  x2 y2 c2 (S.Sem s.t2 __depth x0 y0 c0)) (list (- __depth_o0 1) x2 y2 c2))))]
   )
 )
 (define (E.Sem  e.t x0 y0 c0)

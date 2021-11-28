@@ -7,8 +7,16 @@ using System.Collections.Generic;
 namespace Semgus.Solver.Rosette {
     class SemanticsBuilder {
         private static readonly CodeTextBuilder _builder = new CodeTextBuilder();
+
+        private static readonly string DEPTH_VAR_NAME = "__depth";
+        private static string DEPTH_VAR_TEMP = DEPTH_VAR_NAME;
+        private static string DEPTH_VAR_LAST = DEPTH_VAR_TEMP;
+        private static int DEPTH_VAR_TEMP_LVL = 0;
         private readonly static int DEPTH = 4;
         private static string cond_var = "NO_COND";
+        private static bool is_recursive = false;
+        
+        private static Dictionary<Nonterminal,bool> scan_results = new Dictionary<Nonterminal, bool>();
 
         private static void GenerateRuleSteps(CodeTextBuilder builder, IInterpretationStep s, Dictionary<VariableInfo,int> outvars, string[] outvals) {
             switch(s) {
@@ -23,28 +31,33 @@ namespace Semgus.Solver.Rosette {
                 case TermEvaluation t_s:
                     builder.Write(" ");
                     using (builder.InParens()) {
-                        if (t_s.OutputVariables.Count() == 1) {
+                        bool is_term_recursive = scan_results[t_s.Term.Nonterminal];
+                        int real_out_count = t_s.OutputVariables.Count() + (is_term_recursive ? 1 : 0);
+                        if (real_out_count == 1) {
                             builder.Write("define ");
                             if (cond_var == "NO_COND") cond_var = t_s.OutputVariables[0].Name;
                             builder.Write($"{t_s.OutputVariables[0].Name} ");
                         } else {
-                            builder.Write("define-values ");
-                            using (builder.InParens()) {
-                                foreach (VariableInfo out_var in t_s.OutputVariables) {
-                                    if ((index = (outvars.GetValueOrDefault(out_var, -1))) != -1) {
-                                        outvals[index] = out_var.Name;
-                                    }
-                                    builder.Write($" {out_var.Name}");
+                            builder.Write("set-vals-list ");
+                            DEPTH_VAR_TEMP = $"{DEPTH_VAR_NAME}_o{DEPTH_VAR_TEMP_LVL}";
+                            if (is_term_recursive) builder.Write($"{DEPTH_VAR_TEMP} ");
+                            foreach (VariableInfo out_var in t_s.OutputVariables) {
+                                if ((index = (outvars.GetValueOrDefault(out_var, -1))) != -1) {
+                                    outvals[index] = out_var.Name;
                                 }
+                                builder.Write($" {out_var.Name}");
                             }
                             builder.Write(" ");
+                            DEPTH_VAR_TEMP_LVL++;
                         }
                         
                         using (builder.InParens()) {
                             builder.Write($"{t_s.Term.Nonterminal.Name}.Sem {t_s.Term.Name}");
+                            if (is_term_recursive) builder.Write($" {DEPTH_VAR_LAST}");
                             foreach (VariableInfo in_var in t_s.InputVariables) {
                                 builder.Write($" {in_var.Name}");
                             }
+                            DEPTH_VAR_LAST = DEPTH_VAR_TEMP;
                         }
                     }
                     break;
@@ -62,13 +75,15 @@ namespace Semgus.Solver.Rosette {
         }
 
         private static void GenerateOutputStatement(CodeTextBuilder builder, string[] outvals) {
-            if (outvals.Count() == 1) {
+            int real_inp_count = outvals.Count() + (is_recursive ? 1 : 0);
+            if (real_inp_count == 1) {
                 builder.Write(" ");
                 builder.Write(outvals[0]);
             } else {
                 builder.Write(" ");
                 using (builder.InParens()) {
-                    builder.Write("values ");
+                    builder.Write("list ");
+                    if (is_recursive) builder.Write($"(- {DEPTH_VAR_TEMP} 1) ");
                     builder.WriteEach(outvals);
                 }
             }
@@ -87,13 +102,40 @@ namespace Semgus.Solver.Rosette {
                     GenerateOutputStatement(builder, outvals);
                 }
             }
+            DEPTH_VAR_TEMP = DEPTH_VAR_NAME;
+            DEPTH_VAR_LAST = DEPTH_VAR_TEMP;
+            DEPTH_VAR_TEMP_LVL = 0;
         }
+
+        private static bool ScanProdRulesForRecursion(InterpretationGrammar g, Nonterminal nt) {
+            foreach (ProductionRuleInterpreter pi in g.Productions[nt]) {
+                foreach (SemanticRuleInterpreter si in pi.Semantics) {
+                    foreach (IInterpretationStep s in si.Steps) {
+                        switch (s) {
+                            case TermEvaluation t_s: 
+                                if (t_s.Term.Index == 0) return true; break;
+                            default: break;
+                        }
+                    }
+                }        
+            }
+            return false;
+        }
+
         public static string BuildSemGenFns(InterpretationGrammar g) {
         
             _builder.Write("\n;;; SEMANTICS SECTION\n");
+
+    
+            foreach (Nonterminal nt in g.Nonterminals) {
+                is_recursive = ScanProdRulesForRecursion(g,nt); 
+                scan_results.Add(nt, is_recursive);       
+            }
             
             foreach (Nonterminal nt in g.Nonterminals) {
                 Dictionary<VariableInfo, int> outvars = new Dictionary<VariableInfo, int>();
+
+                is_recursive = scan_results[nt];
                 
                 // this is plain stupid
                 int i = 0;
@@ -105,14 +147,21 @@ namespace Semgus.Solver.Rosette {
                 _builder.LineBreak();
                 using (_builder.InParens()) {
                     _builder.Write($"define ({nt.Name}.Sem  {g.Productions[nt][0].Syntax.TermVariable.Name}");
+
+                    if (is_recursive) _builder.Write($" {DEPTH_VAR_TEMP}");
                     // TODO: is this safe? all of the production rule interpreters
                     // for a nonterminal have the same input names, but it's not tied to
                     // the nonterminal directly
+
                     foreach (VariableInfo in_var in g.Productions[nt][0].InputVariables) {
                         _builder.Write($" {in_var.Name}");
                     }
                     _builder.Write(")");
 
+                    if (is_recursive) {
+                        _builder.LineBreak();
+                        _builder.Write($"(assert (>= {DEPTH_VAR_TEMP} 0))");
+                    }
                     _builder.LineBreak();
                     using (_builder.InParens()) {
                         _builder.Write($"destruct {g.Productions[nt][0].Syntax.TermVariable.Name}");
@@ -163,8 +212,10 @@ namespace Semgus.Solver.Rosette {
                                     default:
                                         _builder.Write("UNIMPLEMENTED"); break;
                                 }
-                                
                             }
+                            /*DEPTH_VAR_TEMP = DEPTH_VAR_NAME;
+                            DEPTH_VAR_LAST = DEPTH_VAR_TEMP;
+                            DEPTH_VAR_TEMP_LVL = 0;*/
                         }
                         _builder.LineBreak();
                     }
