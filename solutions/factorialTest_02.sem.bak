@@ -1,0 +1,117 @@
+#lang rosette
+
+(require
+  rosette/lib/match
+  rosette/lib/destruct
+  rosette/lib/angelic
+  rosette/lib/synthax)
+
+(current-bitwidth #f)
+
+; hack because i can't get the interpreter to generate #t and #f
+(define True #t)
+(define False #f)
+(define (ite c x y) (if c x y))
+
+(define-syntax-rule (set-vals-list __depth x y z val)
+     (define-values (__depth x y z) (let ([l val]) (values (first l) (second l) (third l) (fourth l)))))
+
+;;; STRUCT DECL SECTION
+
+; Start nonterminal
+(struct Struct_$pass ())
+(struct Struct_$while (b.t1 s.t1))
+; S nonterminal
+(struct Struct_$assign-n (e.t1))
+(struct Struct_$assign-r (e.t1))
+(struct Struct_$cons (s.t1 s.t2))
+; E nonterminal
+(struct Struct_$* (e.t1 e.t2))
+(struct Struct_$+ (e.t1 e.t2))
+(struct Struct_$- (e.t1 e.t2))
+; A nonterminal
+(struct Struct_$r ())
+(struct Struct_$n ())
+; B nonterminal
+(struct Struct_$false ())
+(struct Struct_$lt (e.t1 e.t2))
+
+;;; SYNTAX SECTION
+
+(current-grammar-depth 3)
+(define-grammar (gram)
+  [Start
+    (choose
+      (Struct_$pass)
+      (Struct_$while (B) (S))
+    )]
+  [S
+    (choose
+      (Struct_$assign-n (E))
+      (Struct_$assign-r (E))
+      (Struct_$cons (S) (S))
+    )]
+  [E
+    (choose
+      (Struct_$* (A) (A))
+      (Struct_$+ (A) (A))
+      (Struct_$- (A) (A))
+    )]
+  [A
+    (choose
+      (Struct_$r)
+      (Struct_$n)
+    )]
+  [B
+    (choose
+      (Struct_$false)
+      (Struct_$lt (A) (A))
+    )]
+)
+
+;;; SEMANTICS SECTION
+
+(define (Start.Sem  start.t __depth n0 r0)
+  (assert (>= __depth 0))
+  (destruct start.t
+    [(Struct_$pass)  (list (- __depth 1) r0)]
+    [(Struct_$while b.t1 s.t1) (begin (define b.v1 (B.Sem b.t1 n0 r0)) (if (b.v1)
+          (begin (define b.v1 (B.Sem b.t1 n0 r0)) (set-vals-list  n1 r1 (S.Sem s.t1 n0 r0)) (set-vals-list __depth_o1  r2 (Start.Sem start.t __depth_o0 n1 r1)) (list (- __depth_o1 1) r2))
+          (begin (define b.v1 (B.Sem b.t1 n0 r0)) (list (- __depth 1) r0))))]
+  )
+)
+(define (S.Sem  s.t n0 r0)
+  (destruct s.t
+    [(Struct_$assign-n e.t1) (begin (define e.v1 (E.Sem e.t1 n0 r0)) (list e.v1 r0))]
+    [(Struct_$assign-r e.t1) (begin (define e.v1 (E.Sem e.t1 n0 r0)) (list n0 e.v1))]
+    [(Struct_$cons s.t1 s.t2) (begin (set-vals-list  n1 r1 (S.Sem s.t1 n0 r0)) (set-vals-list  n2 r2 (S.Sem s.t2 n1 r1)) (list n2 r2))]
+  )
+)
+(define (E.Sem  e.t n0 r0)
+  (destruct e.t
+    [(Struct_$* e.t1 e.t2) (begin (define e.v1 (A.Sem e.t1 n0 r0)) (define e.v2 (A.Sem e.t2 n0 r0)) (* e.v1 e.v2))]
+    [(Struct_$+ e.t1 e.t2) (begin (define e.v1 (A.Sem e.t1 n0 r0)) (define e.v2 (A.Sem e.t2 n0 r0)) (+ e.v1 e.v2))]
+    [(Struct_$- e.t1 e.t2) (begin (define e.v1 (A.Sem e.t1 n0 r0)) (define e.v2 (A.Sem e.t2 n0 r0)) (- e.v1 e.v2))]
+  )
+)
+(define (A.Sem  e.t n0 r0)
+  (destruct e.t
+    [(Struct_$r)  r0]
+    [(Struct_$n)  n0]
+  )
+)
+(define (B.Sem  b.t n0 r0)
+  (destruct b.t
+    [(Struct_$false)  false]
+    [(Struct_$lt e.t1 e.t2) (begin (define e.v1 (A.Sem e.t1 n0 r0)) (define e.v2 (A.Sem e.t2 n0 r0)) (< e.v1 e.v2))]
+  )
+)
+
+;;; CONSTRAINTS SECTION
+
+(define (sol) (gram))
+(define sol_Start
+(synthesize
+#:forall (list)
+#:guarantee (assert (and (equal? (Start.Sem (sol) 0 1) 1) (equal? (Start.Sem (sol) 1 1) 1) (equal? (Start.Sem (sol) 2 1) 2) (equal? (Start.Sem (sol) 3 1) 6)))))
+(print-forms sol_Start)

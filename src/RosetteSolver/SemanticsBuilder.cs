@@ -18,6 +18,9 @@ namespace Semgus.Solver.Rosette {
         
         private static Dictionary<Nonterminal,bool> scan_results = new Dictionary<Nonterminal, bool>();
 
+
+        // For each step in a semantic rule, we generate the corresponding statement in a Racket (begin ...) block
+        // based on the type of step it is (Assignment, Evaluation of different term, etc.)
         private static void GenerateRuleSteps(CodeTextBuilder builder, IInterpretationStep s, Dictionary<VariableInfo,int> outvars, string[] outvals) {
             switch(s) {
                 case AssignmentFromLocalFormula a_s:
@@ -62,18 +65,17 @@ namespace Semgus.Solver.Rosette {
                     }
                     break;
                 case ConditionalAssertion c_s:
-                    /*foreach (VariableInfo v in c_s.DependencyVariables) {
-                        builder.Write($"{v.Name} ");
-                    }*/
-                    //cond_var = c_s.
-                    // unimplemented for now but will be added soon, fall thru for now
+                    // Not actually generating anything as we just set global variables for the actual productions
                     break;
                 default:
-                    builder.Write(" UNIMPLEMENTED");
+                    builder.Write("UNINMPLEMENTED");
                     break;
             }
         }
 
+        // helper function to generate the output of a rule (last statement in begin block)
+        // depends on whether we are currently generating a recursive rule
+        // in that case, we need to include the depth in the output vars
         private static void GenerateOutputStatement(CodeTextBuilder builder, string[] outvals) {
             int real_inp_count = outvals.Count() + (is_recursive ? 1 : 0);
             if (real_inp_count == 1) {
@@ -89,6 +91,7 @@ namespace Semgus.Solver.Rosette {
             }
         }
         
+        // simple helper function to generate differently if there is only one step in a rule
         private static void GenerateSemantics(CodeTextBuilder builder, SemanticRuleInterpreter s, Dictionary<VariableInfo,int> outvars, string[] outvals) {
             if (s.Steps.Count == 1) {
                 GenerateRuleSteps(builder, s.Steps[0], outvars, outvals);
@@ -107,6 +110,10 @@ namespace Semgus.Solver.Rosette {
             DEPTH_VAR_TEMP_LVL = 0;
         }
 
+
+        // scans and marks rules if they are found to be recursive,
+        // the way this is checked is if there is any TermEvaluation with an index of 0
+        // which refers to the parent term. That means it is recursive.
         private static bool ScanProdRulesForRecursion(InterpretationGrammar g, Nonterminal nt) {
             foreach (ProductionRuleInterpreter pi in g.Productions[nt]) {
                 foreach (SemanticRuleInterpreter si in pi.Semantics) {
@@ -126,7 +133,9 @@ namespace Semgus.Solver.Rosette {
         
             _builder.Write("\n;;; SEMANTICS SECTION\n");
 
-    
+            // Have to do a pass through all nonterminals first to determine
+            // which ones invoke recursion
+            // For these, we need to pass a __depth parameter to limit number of iterations
             foreach (Nonterminal nt in g.Nonterminals) {
                 is_recursive = ScanProdRulesForRecursion(g,nt); 
                 scan_results.Add(nt, is_recursive);       
@@ -137,7 +146,7 @@ namespace Semgus.Solver.Rosette {
 
                 is_recursive = scan_results[nt];
                 
-                // this is plain stupid
+                // probably better way to do this lol
                 int i = 0;
                 foreach (VariableInfo o in g.Productions[nt][0].OutputVariables) {
                     outvars.Add(o, i);
@@ -149,6 +158,7 @@ namespace Semgus.Solver.Rosette {
                     _builder.Write($"define ({nt.Name}.Sem  {g.Productions[nt][0].Syntax.TermVariable.Name}");
 
                     if (is_recursive) _builder.Write($" {DEPTH_VAR_TEMP}");
+
                     // TODO: is this safe? all of the production rule interpreters
                     // for a nonterminal have the same input names, but it's not tied to
                     // the nonterminal directly
@@ -165,6 +175,8 @@ namespace Semgus.Solver.Rosette {
                     _builder.LineBreak();
                     using (_builder.InParens()) {
                         _builder.Write($"destruct {g.Productions[nt][0].Syntax.TermVariable.Name}");
+
+                        // Main loop for each Production in a nonterminal.
                         foreach (ProductionRuleInterpreter pi in g.Productions[nt]) {
                             string[] outvals = new string[pi.OutputVariables.Count];
                             cond_var = "NO_COND";
@@ -181,7 +193,6 @@ namespace Semgus.Solver.Rosette {
                             
                                 // make assumption that semantics is either one item or
                                 // just two, corresponding to an if/else or loop
-                                
                                 switch (pi.Semantics.Count) {                    
                                     case 1:
                                         GenerateSemantics(_builder, pi.Semantics[0], outvars, outvals); break;
@@ -189,7 +200,6 @@ namespace Semgus.Solver.Rosette {
                                         // Two separate builders for each code block of the if/else or while loop
                                         CodeTextBuilder if_builder = new CodeTextBuilder();
                                         CodeTextBuilder else_builder = new CodeTextBuilder();
-
 
                                         // DANGER!! we are assuming that the first step is the one that sets the cond variable.
                                         // otherwise you have to do multiple passes. this can be fixed in the future.
@@ -210,12 +220,10 @@ namespace Semgus.Solver.Rosette {
                                         
                                         break;
                                     default:
+                                        // regex tests enter this case due to having more than 2 conditionals
                                         _builder.Write("UNIMPLEMENTED"); break;
                                 }
                             }
-                            /*DEPTH_VAR_TEMP = DEPTH_VAR_NAME;
-                            DEPTH_VAR_LAST = DEPTH_VAR_TEMP;
-                            DEPTH_VAR_TEMP_LVL = 0;*/
                         }
                         _builder.LineBreak();
                     }
